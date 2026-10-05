@@ -1,4 +1,4 @@
-# 🎥 YouTube Video Recommendation System (Content-Based)
+# YouTube Video Recommendation System (Content-Based)
 
 Mô hình Gợi ý Video dựa trên Nội dung (Content-Based Filtering) xây dựng trên tập dữ liệu **YouTube Trending Videos (US)**. Hệ thống trích xuất đặc trưng văn bản từ *Tiêu đề (Title)*, *Thẻ (Tags)*, và *Mô tả (Description)* bằng kỹ thuật **TF-IDF Vectorization** và đo độ tương đồng ngữ nghĩa bằng **Cosine Similarity**.
 

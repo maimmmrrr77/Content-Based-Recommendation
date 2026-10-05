@@ -152,3 +152,84 @@ plt.ylabel("Average Cosine Similarity")
 plt.legend()
 plt.grid(True)
 plt.show()
+# =========================================================
+# 9. TÍNH CHỈ SỐ PRECISION@K, RECALL@K, F1@K VÀ ACCURACY@K
+# =========================================================
+def evaluate_recommendation_metrics(max_k=10):
+    precisions = []
+    recalls = []
+    f1_scores = []
+    accuracies = []
+
+    test_categories = test_df['category_id'].values
+    train_categories = train_df['category_id'].values
+
+    for k in range(1, max_k + 1):
+        p_list, r_list, f1_list, acc_list = [], [], [], []
+
+        for i in range(len(test_df)):
+            target_cat = test_categories[i]
+            
+            # Tổng số video trong tập Train thuộc cùng category
+            total_relevant_in_train = np.sum(train_categories == target_cat)
+            
+            if total_relevant_in_train == 0:
+                continue
+
+            # Lấy Top-K chỉ số gợi ý tốt nhất
+            sim_row = cosine_sim_test_train[i]
+            topk_indices = sim_row.argsort()[::-1][:k]
+            recommended_cats = train_categories[topk_indices]
+
+            # Đếm số video gợi ý đúng Category (True Positives)
+            hits = np.sum(recommended_cats == target_cat)
+
+            # 1. Precision@K = Số video đúng trong Top K / K
+            precision = hits / k
+            
+            # 2. Recall@K = Số video đúng / Tổng video cùng category trong Train
+            recall = hits / total_relevant_in_train
+            
+            # 3. F1-Score@K
+            f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+            
+            # 4. Accuracy@K = Tỷ lệ phần trăm đoán đúng
+            accuracy = hits / k
+
+            p_list.append(precision)
+            r_list.append(recall)
+            f1_list.append(f1)
+            acc_list.append(accuracy)
+
+        precisions.append(np.mean(p_list))
+        recalls.append(np.mean(r_list))
+        f1_scores.append(np.mean(f1_list))
+        accuracies.append(np.mean(acc_list))
+
+    return precisions, recalls, f1_scores, accuracies
+
+# Chạy đánh giá Top 1 -> Top 10
+max_k_eval = 10
+p, r, f1, acc = evaluate_recommendation_metrics(max_k=max_k_eval)
+
+print("\n================ BÁO CÁO KẾT QUẢ ĐÁNH GIÁ METRICS ================")
+print(f"Top-K | Precision |  Recall  | F1-Score | Accuracy")
+print("-" * 55)
+for k in range(1, max_k_eval + 1):
+    print(f"Top-{k:<2}|   {p[k-1]*100:.2f}%   |  {r[k-1]*100:.2f}%  |  {f1[k-1]*100:.2f}%   |  {acc[k-1]*100:.2f}%")
+
+# =========================================================
+# 10. BIỂU ĐỒ TRỰC QUAN HÓA PRECISION, RECALL & F1-SCORE
+# =========================================================
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, max_k_eval + 1), p, marker='o', label='Precision@K')
+plt.plot(range(1, max_k_eval + 1), r, marker='s', label='Recall@K')
+plt.plot(range(1, max_k_eval + 1), f1, marker='^', label='F1-Score@K')
+
+plt.title("Recommendation System Evaluation Metrics across Top-K")
+plt.xlabel("Top-K Value")
+plt.ylabel("Score")
+plt.xticks(range(1, max_k_eval + 1))
+plt.legend()
+plt.grid(True)
+plt.show()
